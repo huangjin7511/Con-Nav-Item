@@ -84,7 +84,7 @@
         <UserManage v-if="page==='user'" />
       </div>
       <footer class="admin-footer">
-        <p class="admin-copyright">Copyright © 2025 Con-Nav-Item | <a href="https://github.com/zczy-k/Con-Nav-Item" target="_blank" class="footer-link">Powered by zczy-k</a></p>
+        <p class="admin-copyright">Copyright © 2025 Nav | <a href="https://github.com/leoleo166/Con-Nav-Item" target="_blank" class="footer-link">Powered by Me</a></p>
       </footer>
     </main>
   </div>
@@ -615,4 +615,5 @@ function closeSider() {
 .menu-toggle {
   display: none;
 }
+
 </style> 
