@@ -310,7 +310,7 @@
           </svg>
           友情链接
         </button>
-        <p class="copyright">Copyright © 2025 Con-Nav-Item | <a href="https://github.com/zczy-k/Con-Nav-Item" target="_blank" class="footer-link">Powered by zczy-k</a></p>
+        <p class="copyright">Copyright © 2025 Nav | <a href="https://github.com/leoleo166/Con-Nav-Item" target="_blank" class="footer-link">Powered by Me</a></p>
       </div>
     </footer>
 
@@ -3010,3 +3010,4 @@ async function saveCardEdit() {
   }
 }
 </style>
+
