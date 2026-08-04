@@ -16,7 +16,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18'          # 改为 18
           cache: 'npm'
 
       - name: Install backend dependencies
@@ -47,7 +47,7 @@ jobs:
           else { Write-Error "No entry file found"; exit 1 }
 
           pkg $entry `
-            --target node20-win-x64 `
+            --target node18-win-x64 `
             --output Con-Nav-Item.exe `
             --compress Brotli `
             --assets web/dist/**/* `
