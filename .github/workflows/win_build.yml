@@ -1,0 +1,52 @@
+name: Build Windows Executable
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:        # 允许手动触发
+
+jobs:
+  build:
+    runs-on: windows-latest   # 必须用 Windows runner 才能正确编译 native 模块
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'          # 与项目兼容的版本
+          cache: 'npm'
+
+      - name: Install backend dependencies
+        run: npm ci                    # 使用 package-lock.json 保证一致性
+
+      - name: Build frontend
+        working-directory: ./web
+        run: |
+          npm ci
+          npm run build
+
+      - name: Copy frontend dist to project root (if needed)
+        run: |
+          if (Test-Path "./web/dist") {
+            Copy-Item -Path "./web/dist" -Destination "./public" -Recurse -Force
+          }
+
+      - name: Package with pkg
+        run: |
+          npm install -g pkg
+          pkg . --target node20-win-x64 --output Con-Nav-Item.exe --compress Brotli
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Con-Nav-Item-Win64
+          path: |
+            Con-Nav-Item.exe
+            # 如果有必要，可以同时上传依赖的原生 .node 文件
+            # node_modules/better-sqlite3/build/Release/better_sqlite3.node
+          if-no-files-found: error
