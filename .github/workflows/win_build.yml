@@ -8,25 +8,49 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-frontend:
     runs-on: windows-latest
-
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '18'          # 改为 18
+          node-version: '20'          # 前端构建需要 Node 20+
           cache: 'npm'
-
-      - name: Install backend dependencies
-        run: npm ci
+          cache-dependency-path: './web/package-lock.json'
 
       - name: Build frontend
         working-directory: ./web
         run: |
           npm ci
           npm run build
+
+      - name: Upload frontend dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: web/dist
+          retention-days: 1
+
+  package-backend:
+    needs: build-frontend
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'          # pkg 打包只能用 Node 18
+          cache: 'npm'
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Download frontend dist
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: web/dist
 
       - name: Copy native module (if needed)
         shell: pwsh
@@ -54,7 +78,7 @@ jobs:
             --assets database/**/* `
             --assets uploads/**/*
 
-      - name: Upload artifact
+      - name: Upload final executable
         uses: actions/upload-artifact@v4
         with:
           name: Con-Nav-Item-Win64
