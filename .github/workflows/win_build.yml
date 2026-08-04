@@ -5,24 +5,22 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch:        # 允许手动触发
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: windows-latest   # 必须用 Windows runner 才能正确编译 native 模块
+    runs-on: windows-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'          # 与项目兼容的版本
+          node-version: '20'
           cache: 'npm'
 
       - name: Install backend dependencies
-        run: npm ci                    # 使用 package-lock.json 保证一致性
+        run: npm ci
 
       - name: Build frontend
         working-directory: ./web
@@ -30,23 +28,35 @@ jobs:
           npm ci
           npm run build
 
-      - name: Copy frontend dist to project root (if needed)
+      - name: Copy native module (if needed)
+        shell: pwsh
         run: |
-          if (Test-Path "./web/dist") {
-            Copy-Item -Path "./web/dist" -Destination "./public" -Recurse -Force
+          $nativePath = "node_modules\better-sqlite3\build\Release\better_sqlite3.node"
+          if (Test-Path $nativePath) {
+            Copy-Item $nativePath -Destination .\
           }
 
       - name: Package with pkg
+        shell: pwsh
         run: |
           npm install -g pkg
-          pkg . --target node20-win-x64 --output Con-Nav-Item.exe --compress Brotli
+
+          # 确定入口文件
+          if (Test-Path "app.js") { $entry = "app.js" }
+          elseif (Test-Path "server.js") { $entry = "server.js" }
+          else { Write-Error "No entry file found"; exit 1 }
+
+          pkg $entry `
+            --target node20-win-x64 `
+            --output Con-Nav-Item.exe `
+            --compress Brotli `
+            --assets web/dist/**/* `
+            --assets database/**/* `
+            --assets uploads/**/*
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: Con-Nav-Item-Win64
-          path: |
-            Con-Nav-Item.exe
-            # 如果有必要，可以同时上传依赖的原生 .node 文件
-            # node_modules/better-sqlite3/build/Release/better_sqlite3.node
+          path: Con-Nav-Item.exe
           if-no-files-found: error
